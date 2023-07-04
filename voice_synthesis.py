@@ -22,7 +22,7 @@ def create_voice_file(text: str):
     }
 
     response = requests.post(url, json=data, headers=headers)
-    with open('output.mp3', 'wb') as f:
+    with open('output.wav', 'wb') as f:
         for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
             if chunk:
                 f.write(chunk)
