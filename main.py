@@ -11,4 +11,15 @@ import os
 from playsound import playsound
 
 if __name__ == "__main__":
-    print(get_audio())
+    user_input: str = ""
+
+    while True:
+        user_input = input("Input:> ")
+
+        if user_input.lower() == "quit":
+            break
+
+        create_voice_file(get_chat_response(user_input))
+
+        print("Playing Response...")
+        playsound("output.wav")
