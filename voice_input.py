@@ -1,12 +1,16 @@
+import os
+
 import pyaudio
 from pydub import AudioSegment
 import openai
+
+openai.api_key = os.getenv("OPENAI")
 
 CHUNK = 1024  # Number of frames per buffer
 FORMAT = pyaudio.paInt16  # Audio format (16-bit)
 CHANNELS = 1  # Mono audio
 RATE = 44100  # Sampling rate (samples per second)
-RECORD_SECONDS = 10 # Duration of recording
+RECORD_SECONDS = 5 # Duration of recording
 
 def get_audio():
     # Getting Audio
