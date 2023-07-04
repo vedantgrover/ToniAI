@@ -44,4 +44,4 @@ def get_audio():
     audio_file = open("voice_input.mp3", "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
 
-    print(transcript)
+    return transcript.text
