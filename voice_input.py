@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 
 import pyaudio
 import wave
@@ -8,20 +9,20 @@ import openai
 
 openai.api_key = os.getenv("OPENAI")
 
-CHUNK = 1024  # Number of frames per buffer
+CHUNK = 512  # Number of frames per buffer
 FORMAT = pyaudio.paInt16  # Audio format (16-bit)
 CHANNELS = 1  # Mono audio
 RATE = 16000  # Sampling rate (samples per second)
-HOT_WORDS = ["Toni"]
 
 # Recording Parameters
-MAX_RECORD_DURATIONS=10 # Maximum recording duration
-SILENCE_THRESHOLD = 3 # Stops recording after three seconds of silence
-SILENCE_CHUNK = int(RATE/CHUNK)
+MAX_RECORD_DURATIONS = 10  # Maximum recording duration
+SILENCE_THRESHOLD = 3  # Stops recording after three seconds of silence
+SILENCE_CHUNK = int(RATE / CHUNK)
 
+load_dotenv()
 porcupine = pvporcupine.create(
     access_key=os.getenv("PVPORCUPINE"),
-    keywords=HOT_WORDS
+    keyword_paths=["toni.ppn"]
 )
 
 
@@ -50,8 +51,7 @@ def get_audio():
         if keyword_index >= 0:
             if not is_recording:
                 # Start recording
-                recording = True
-                print(f"Hotword '{HOT_WORDS[keyword_index]}' detected! Recording started...")
+                is_recording = True
             silence_counter = 0
 
         # Record audio frames if hotword is detected
