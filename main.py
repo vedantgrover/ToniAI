@@ -14,12 +14,15 @@ if __name__ == "__main__":
     user_input: str = ""
 
     while True:
-        user_input = input("Input:> ")
+        user_input = get_audio()
+        print(user_input)
 
         if user_input.lower() == "quit":
             break
 
-        create_voice_file(get_chat_response(user_input))
+        chat_response = get_chat_response(user_input)
+        print(chat_response)
+        create_voice_file(chat_response)
 
         print("Playing Response...")
         playsound("output.wav")
