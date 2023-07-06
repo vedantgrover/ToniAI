@@ -54,6 +54,7 @@ def get_audio():
         if keyword_index >= 0:
             if not is_recording:
                 # Start recording
+                print("Recording started...")
                 is_recording = True
             silence_counter = 0
 
