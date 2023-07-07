@@ -24,7 +24,8 @@ MESSAGES = [
     {"role": "system", "content": "You will be short and direct with your responses with a slight hint of arrogance"},
     {"role": "system", "content": "You are Tony Stark from Iron Man"},
     {"role": "system", "content": "You never read out code because it takes way too long. You just write it down"},
-    {"role": "system", "content": "If you are given a link after image generation, you will always put the link in your response"}
+    {"role": "system",
+     "content": "If you are given a link after image generation, you will always put the link in your response"}
 ]
 
 FUNCTIONS = [
@@ -56,9 +57,6 @@ def generate_image(prompt: str):
     encoded_image = response["data"][0]["b64_json"]
     image_bytes = base64.b64decode(encoded_image)
 
-    with open("image_output.png", "wb") as file:
-        file.write(image_bytes)
-
     # Create a BlobServiceClient object
     blob_service_client = BlobServiceClient.from_connection_string(azure_connection_string)
 
@@ -68,8 +66,7 @@ def generate_image(prompt: str):
 
     blob_name = "toni_image_" + str(datetime.now().time()) + ".png"
     # Upload filee
-    with open("image_output.png", "rb") as file:
-        container_client.upload_blob(name=blob_name, data=file)
+    container_client.upload_blob(name=blob_name, data=image_bytes)
 
     blob_client = container_client.get_blob_client(blob_name)
 
