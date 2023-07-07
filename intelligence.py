@@ -3,11 +3,13 @@ import os
 from dotenv import load_dotenv
 import json
 import base64
-import io
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from datetime import datetime
 
 load_dotenv()
 
 openai.api_key = os.getenv("OPENAI")
+azure_connection_string = os.getenv("AZUREBLOBSTORAGE")
 
 MESSAGES = [
     {"role": "system", "content": "Your name is Toni. It stands for 'The Only Neural Interface'"},
@@ -21,7 +23,8 @@ MESSAGES = [
     {"role": "system", "content": "You will refer to me as 'boss'."},
     {"role": "system", "content": "You will be short and direct with your responses with a slight hint of arrogance"},
     {"role": "system", "content": "You are Tony Stark from Iron Man"},
-    {"role": "system", "content": "You never read out code because it takes way too long. You just write it down"}
+    {"role": "system", "content": "You never read out code because it takes way too long. You just write it down"},
+    {"role": "system", "content": "If you are given a link after image generation, you will always put the link in your response"}
 ]
 
 FUNCTIONS = [
@@ -46,7 +49,7 @@ def generate_image(prompt: str):
     response = openai.Image.create(
         prompt=prompt,
         n=1,
-        size="1024x1024",
+        size="256x256",
         response_format="b64_json"
     )
 
@@ -56,7 +59,21 @@ def generate_image(prompt: str):
     with open("image_output.png", "wb") as file:
         file.write(image_bytes)
 
-    return "Image created in file explorer"
+    # Create a BlobServiceClient object
+    blob_service_client = BlobServiceClient.from_connection_string(azure_connection_string)
+
+    # Create a container client for a specific container
+    container_name = "image-container"
+    container_client = blob_service_client.get_container_client(container_name)
+
+    blob_name = "toni_image_" + str(datetime.now().time()) + ".png"
+    # Upload filee
+    with open("image_output.png", "rb") as file:
+        container_client.upload_blob(name=blob_name, data=file)
+
+    blob_client = container_client.get_blob_client(blob_name)
+
+    return blob_client.url
 
 
 def get_chat_response(user_input: str):
