@@ -18,7 +18,7 @@ RATE = 16000  # Sampling rate (samples per second)
 MAX_RECORD_DURATIONS = 10  # Maximum recording duration
 SILENCE_THRESHOLD = 3  # Stops recording after three seconds of silence
 SILENCE_CHUNK = int(RATE / CHUNK)
-SILENCE_LEVEL = 70
+SILENCE_LEVEL = 200
 
 load_dotenv()
 porcupine = pvporcupine.create(
