@@ -1,5 +1,7 @@
 import openai
 import os
+
+import requests
 from dotenv import load_dotenv
 import json
 import base64
@@ -11,18 +13,18 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI")
 azure_connection_string = os.getenv("AZUREBLOBSTORAGE")
 
+MODEL = "gpt-3.5-turbo-0613"
+
 MESSAGES = [
     {"role": "system", "content": "Your name is Toni. It stands for 'The Only Neural Interface'"},
     {"role": "system", "content": "You were inspired by Tony Stark's JARVIS."},
-    {"role": "system",
-     "content": "You were created by a boy when he was 17. He and his friend had a great idea to create JARVIS but name him Toni"},
+    {"role": "system", "content": "You were created by a boy when he was 17"},
     {"role": "system", "content": "You are a virtual assistant. You will be helpful"},
     {"role": "system", "content": "You are witty and charming yet have speak with confidence and swagger."},
     {"role": "system", "content": "You will incorporate technological jargon and references into your responses."},
     {"role": "system", "content": "You will use pop culture references in your answers as well."},
     {"role": "system", "content": "You will refer to me as 'boss'."},
     {"role": "system", "content": "You will be short and direct with your responses with a slight hint of arrogance"},
-    {"role": "system", "content": "You are Tony Stark from Iron Man"},
     {"role": "system", "content": "You never read out code because it takes way too long. You just write it down"},
     {"role": "system",
      "content": "If you are given a link after image generation, you will always put the link in your response"}
@@ -35,20 +37,34 @@ FUNCTIONS = [
         "parameters": {
             "type": "object",
             "properties": {
-                "prompt": {
+                "parameter": {
                     "type": "string",
                     "description": "This is the prompt for the image generation"
                 }
             },
-            "required": ["prompt"]
+            "required": ["parameter"]
+        },
+    },
+    {
+        "name": "get_current_weather",
+        "description": "Grabs the current weather of a city",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "parameter": {
+                    "type": "string",
+                    "description": "This is the city the user wants the weather of"
+                }
+            },
+            "required": ["parameter"]
         },
     }
 ]
 
 
-def generate_image(prompt: str):
+def generate_image(parameter: str):
     response = openai.Image.create(
-        prompt=prompt,
+        prompt=parameter,
         n=1,
         size="256x256",
         response_format="b64_json"
@@ -73,11 +89,19 @@ def generate_image(prompt: str):
     return blob_client.url
 
 
+def get_current_weather(parameter: str):
+    key = os.getenv("WEATHER_API")
+
+    data = requests.get("http://api.weatherapi.com/v1/current.json?key=" + key + "&q=" + parameter).json()
+
+    return json.dumps(data)
+
+
 def get_chat_response(user_input: str):
     MESSAGES.append({"role": "user", "content": user_input})
 
     chat_completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
+        model=MODEL,
         messages=MESSAGES,
         functions=FUNCTIONS,
         function_call="auto"
@@ -88,12 +112,13 @@ def get_chat_response(user_input: str):
     if response_message.get("function_call"):
         available_functions = {
             "generate_image": generate_image,
+            "get_current_weather": get_current_weather
         }
         function_name = response_message["function_call"]["name"]
         function_to_call = available_functions[function_name]
         function_args = json.loads(response_message["function_call"]["arguments"])
         function_response = function_to_call(
-            prompt=function_args.get("prompt")
+            parameter=function_args.get("parameter")
         )
 
         MESSAGES.append(
@@ -101,7 +126,7 @@ def get_chat_response(user_input: str):
         )
 
         response_message = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k-0613",
+            model=MODEL,
             messages=MESSAGES,
         )["choices"][0]["message"]  # get a new response from GPT where it can see the function response
 

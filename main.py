@@ -33,5 +33,4 @@ if __name__ == "__main__":
         if user_input.lower() == "quit":
             break
 
-        chat_response = get_chat_response(user_input)
-        print(chat_response)
+        print(get_chat_response(user_input))
